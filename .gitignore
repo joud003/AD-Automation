@@ -1,0 +1,22 @@
+# Secrets & local data — never commit these
+backend/audit.db
+backend/secret.key
+*.db
+secret.key
+
+# Agent local config & logs
+agent/config.json
+agent/log.txt
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+env/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
