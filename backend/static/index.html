@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Employee Account Automation — networkat.local</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F5F6F2;
+    --surface:#FFFFFF;
+    --border:#E1E4DD;
+    --ink:#1B1F23;
+    --muted:#666E68;
+    --accent:#2F6F4F;
+    --accent-hover:#255939;
+    --accent-soft:#E9F2EC;
+    --error:#B3261E;
+    --error-soft:#FBEAE9;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', 'Segoe UI', sans-serif;
+    direction:ltr;
+    min-height:100vh;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding:48px 20px;
+  }
+  .wrap{ width:100%; max-width:900px; }
+
+  .tag{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.02em;
+    color:var(--muted);
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:18px;
+  }
+  .tag .dot{
+    width:7px; height:7px; border-radius:50%;
+    background:var(--accent);
+    display:inline-block;
+  }
+
+  h1{
+    font-size:26px;
+    font-weight:700;
+    margin:0 0 6px 0;
+    line-height:1.35;
+  }
+  .sub{
+    color:var(--muted);
+    font-size:14.5px;
+    margin:0 0 32px 0;
+    line-height:1.7;
+    max-width:60ch;
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap:20px;
+    align-items:start;
+  }
+  @media (max-width: 720px){
+    .grid{ grid-template-columns: 1fr; }
+  }
+
+  .panel{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:26px;
+  }
+  .panel h2{
+    font-size:14px;
+    font-weight:600;
+    margin:0 0 20px 0;
+    color:var(--ink);
+  }
+
+  label{
+    display:block;
+    font-size:13px;
+    font-weight:500;
+    color:var(--ink);
+    margin-bottom:6px;
+  }
+  .field{ margin-bottom:18px; }
+  input[type=text], input[type=password], select{
+    width:100%;
+    font-family:inherit;
+    font-size:14.5px;
+    color:var(--ink);
+    background:var(--bg);
+    border:1px solid var(--border);
+    border-radius:6px;
+    padding:10px 12px;
+    outline:none;
+    transition:border-color .15s ease;
+  }
+  input[type=text]:focus, input[type=password]:focus, select:focus{
+    border-color:var(--accent);
+    box-shadow:0 0 0 3px var(--accent-soft);
+  }
+  select{ cursor:pointer; }
+
+  .inline-group{ display:flex; gap:8px; }
+  .inline-group input{ flex:1; }
+  .btn-secondary{
+    width:auto;
+    white-space:nowrap;
+    font-size:13px;
+    font-weight:500;
+    color:var(--accent);
+    background:var(--accent-soft);
+    border:1px solid var(--border);
+    border-radius:6px;
+    padding:0 14px;
+    margin-top:0;
+    cursor:pointer;
+  }
+  .btn-secondary:hover{ background:#DDEDE3; }
+  .field-note{
+    font-size:11.5px;
+    color:var(--muted);
+    margin-top:5px;
+  }
+
+  button{
+    width:100%;
+    font-family:inherit;
+    font-size:15px;
+    font-weight:600;
+    color:#fff;
+    background:var(--accent);
+    border:none;
+    border-radius:6px;
+    padding:12px 16px;
+    cursor:pointer;
+    transition:background .15s ease;
+    margin-top:4px;
+  }
+  button:hover:not(:disabled){ background:var(--accent-hover); }
+  button:disabled{ background:#A9B5AE; cursor:not-allowed; }
+
+  .hint{
+    font-size:12px;
+    color:var(--muted);
+    margin-top:10px;
+    line-height:1.6;
+  }
+
+  /* Log panel */
+  .log{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    line-height:1.9;
+    min-height:220px;
+    max-height:360px;
+    overflow-y:auto;
+  }
+  .log .empty{
+    color:var(--muted);
+    font-size:13px;
+    font-family:'IBM Plex Sans', sans-serif;
+  }
+  .log-line{
+    display:flex;
+    gap:8px;
+    padding:4px 0;
+    border-bottom:1px dashed var(--border);
+    opacity:0;
+    animation:fadeIn .35s ease forwards;
+  }
+  .log-line:last-child{ border-bottom:none; }
+  @keyframes fadeIn{ from{opacity:0; transform:translateY(-3px);} to{opacity:1; transform:translateY(0);} }
+  .log-time{ color:var(--muted); flex-shrink:0; }
+  .log-ok{ color:var(--accent); }
+  .log-err{ color:var(--error); }
+
+  .status-badge{
+    display:inline-block;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    padding:3px 9px;
+    border-radius:20px;
+    background:var(--accent-soft);
+    color:var(--accent);
+    margin-bottom:16px;
+  }
+  .status-badge.err{ background:var(--error-soft); color:var(--error); }
+
+  /* Tabs */
+  .tabs{
+    display:flex;
+    gap:6px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:4px;
+    margin-bottom:24px;
+    width:fit-content;
+  }
+  .tab-btn{
+    width:auto;
+    margin-top:0;
+    font-size:13.5px;
+    font-weight:600;
+    color:var(--muted);
+    background:transparent;
+    border:none;
+    border-radius:6px;
+    padding:9px 20px;
+    cursor:pointer;
+    transition:all .15s ease;
+  }
+  .tab-btn.active{
+    background:var(--accent);
+    color:#fff;
+  }
+  .tab-btn:hover:not(.active){ background:var(--bg); }
+  .hidden{ display:none; }
+  .full-width{ grid-column: 1 / -1; }
+  .action-desc{
+    color:var(--muted);
+    font-size:14.5px;
+    margin:0 0 20px 0;
+    line-height:1.7;
+  }
+
+  /* Audit table */
+  .audit-toolbar{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:16px;
+  }
+  .audit-toolbar select{ width:auto; }
+  .btn-refresh{
+    width:auto;
+    margin-top:0;
+    font-size:13px;
+    padding:10px 16px;
+  }
+  .audit-table-wrap{ overflow-x:auto; }
+  table.audit{
+    width:100%;
+    border-collapse:collapse;
+    font-size:13px;
+  }
+  table.audit th, table.audit td{
+    text-align:left;
+    padding:9px 10px;
+    border-bottom:1px solid var(--border);
+    white-space:nowrap;
+  }
+  table.audit th{
+    font-weight:600;
+    color:var(--muted);
+    font-size:12px;
+  }
+  table.audit td.mono{
+    font-family:'IBM Plex Mono', monospace;
+  }
+  .pill{
+    display:inline-block;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    padding:2px 9px;
+    border-radius:20px;
+  }
+  .pill.pending{ background:#F0EEE9; color:var(--muted); }
+  .pill.done{ background:var(--accent-soft); color:var(--accent); }
+  .pill.failed{ background:var(--error-soft); color:var(--error); }
+
+  /* Modal */
+  .modal-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(27,31,35,0.5);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:100;
+    padding:20px;
+  }
+  .modal-overlay.hidden{ display:none; }
+  .modal-box{
+    background:var(--surface);
+    border-radius:10px;
+    padding:28px;
+    max-width:380px;
+    width:100%;
+    box-shadow:0 12px 32px rgba(0,0,0,0.18);
+  }
+  .modal-box h3{
+    font-size:17px;
+    font-weight:700;
+    margin:0 0 10px 0;
+  }
+  .modal-box p{
+    font-size:14px;
+    color:var(--muted);
+    line-height:1.6;
+    margin:0 0 22px 0;
+  }
+  .modal-box p strong{ color:var(--ink); font-family:'IBM Plex Mono', monospace; }
+  .modal-actions{
+    display:flex;
+    gap:10px;
+  }
+  .modal-actions button{
+    margin-top:0;
+    flex:1;
+  }
+  .btn-cancel{
+    background:var(--bg);
+    color:var(--ink);
+    border:1px solid var(--border);
+  }
+  .btn-cancel:hover{ background:#ECEEE9; }
+  .btn-confirm{
+    background:var(--accent);
+  }
+  .btn-confirm:hover{ background:var(--accent-hover); }
+
+  /* Login screen */
+  .login-wrap{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:100%;
+  }
+  .login-box{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:36px 32px;
+    max-width:360px;
+    width:100%;
+  }
+  .login-box h1{ font-size:20px; margin-bottom:4px; }
+  .login-box .sub{ margin-bottom:26px; font-size:13.5px; }
+  .login-error{
+    background:var(--error-soft);
+    color:var(--error);
+    font-size:13px;
+    padding:9px 12px;
+    border-radius:6px;
+    margin-bottom:16px;
+  }
+
+  /* Top bar for the logged-in app */
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:8px;
+    gap:16px;
+  }
+  .topbar > div{
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .topbar .whoami{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--muted);
+  }
+  .btn-logout{
+    width:auto;
+    margin-top:0;
+    font-size:12.5px;
+    font-weight:500;
+    color:var(--muted);
+    background:transparent;
+    border:1px solid var(--border);
+    padding:6px 14px;
+  }
+  .btn-logout:hover{ background:var(--bg); color:var(--ink); }
+
+  /* Bulk employee rows */
+  .employee-row{
+    display:flex;
+    gap:8px;
+    align-items:flex-start;
+    margin-bottom:12px;
+  }
+  .employee-row .field{ flex:1; margin-bottom:0; }
+  .btn-remove-row{
+    width:42px;
+    height:42px;
+    margin-top:22px;
+    padding:0;
+    font-size:18px;
+    line-height:1;
+    color:var(--muted);
+    background:var(--bg);
+    border:1px solid var(--border);
+    border-radius:6px;
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  .btn-remove-row:hover{ background:var(--error-soft); color:var(--error); border-color:var(--error); }
+  .btn-remove-row:disabled{ opacity:0.35; cursor:not-allowed; }
+  #add-employee-btn{
+    width:100%;
+    margin-top:0;
+    margin-bottom:20px;
+    font-size:13.5px;
+    color:var(--accent);
+    background:var(--accent-soft);
+    border:1px dashed var(--border);
+  }
+  #add-employee-btn:hover{ background:#DDEDE3; }
+</style>
+</head>
+<body>
+
+<!-- Login screen -->
+<div class="login-wrap" id="login-screen">
+  <div class="login-box">
+    <h1>Employee Account Automation</h1>
+    <p class="sub">Sign in to manage employee accounts on networkat.local.</p>
+    <div class="login-error hidden" id="demo-hint" style="background:var(--accent-soft); color:var(--accent);"></div>
+    <div class="login-error hidden" id="login-error"></div>
+    <form id="login-form">
+      <div class="field">
+        <label for="login-username">Username</label>
+        <input type="text" id="login-username" required autocomplete="username">
+      </div>
+      <div class="field">
+        <label for="login-password">Password</label>
+        <input type="password" id="login-password" required autocomplete="current-password">
+      </div>
+      <button type="submit" id="login-submit-btn">Log In</button>
+    </form>
+  </div>
+</div>
+
+<!-- Main app (hidden until logged in) -->
+<div class="wrap hidden" id="app-screen">
+
+  <div class="tag"><span class="dot"></span>AD AUTOMATION · networkat.local</div>
+
+  <div class="topbar">
+    <h1 style="margin:0;">Employee Account Automation</h1>
+    <div>
+      <span class="whoami" id="whoami-label"></span>
+      <button type="button" class="btn-logout" id="logout-btn">Log Out</button>
+    </div>
+  </div>
+  <p class="sub">Create or disable employee accounts on Active Directory automatically, without manual IT involvement.</p>
+
+  <div class="tabs">
+    <button type="button" class="tab-btn active" id="tab-onboard-btn">Create Account</button>
+    <button type="button" class="tab-btn" id="tab-offboard-btn">Disable Account</button>
+    <button type="button" class="tab-btn" id="tab-reactivate-btn">Reactivate</button>
+    <button type="button" class="tab-btn" id="tab-audit-btn">Audit Log</button>
+  </div>
+
+  <div class="grid">
+
+    <!-- Onboard Form -->
+    <div class="panel" id="onboard-panel">
+      <h2>Employee Details</h2>
+      <p class="action-desc">Add one or more employees below — they'll all be created in the same department. The agent will pick up each request and create the accounts automatically on Active Directory.</p>
+      <form id="onboard-form">
+        <div class="field">
+          <label for="department">Department</label>
+          <select id="department" name="department" required>
+            <option value="" disabled selected>Select department</option>
+            <option value="IT">IT</option>
+            <option value="HR">HR</option>
+            <option value="Finance">Finance</option>
+          </select>
+        </div>
+
+        <label style="margin-bottom:8px;">Employees</label>
+        <div id="employee-rows"></div>
+        <button type="button" class="btn-secondary" id="add-employee-btn">+ Add Employee</button>
+
+        <button type="submit" id="submit-btn">Create Account</button>
+        <p class="hint">This can take 10–30 seconds per employee while the agent picks up and executes each request.</p>
+      </form>
+
+      <div class="hidden" id="onboard-results-wrap">
+        <h2 style="margin-top:28px;">Generated Credentials</h2>
+        <p class="action-desc">Share these with each employee — they'll need to change the password on first login.</p>
+        <div class="audit-table-wrap">
+          <table class="audit">
+            <thead>
+              <tr><th>Name</th><th>Username</th><th>Temporary Password</th><th>Status</th></tr>
+            </thead>
+            <tbody id="onboard-results-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Offboard Form -->
+    <div class="panel hidden" id="offboard-panel">
+      <h2>Disable Employee Account</h2>
+      <p class="action-desc">The account will be disabled, not deleted — so it can be restored later and its history kept for review.</p>
+      <form id="offboard-form">
+        <div class="field">
+          <label for="offboard_username">Username</label>
+          <input type="text" id="offboard_username" name="username" required autocomplete="off" placeholder="e.g. jahmad">
+        </div>
+        <div class="field">
+          <label for="offboard_reason">Reason (optional)</label>
+          <input type="text" id="offboard_reason" name="reason" autocomplete="off" placeholder="e.g. end of contract">
+        </div>
+        <button type="submit" id="offboard-submit-btn">Disable Account</button>
+        <p class="hint">This can take 10–30 seconds while the agent picks up and executes the request.</p>
+      </form>
+    </div>
+
+    <!-- Reactivate Form -->
+    <div class="panel hidden" id="reactivate-panel">
+      <h2>Reactivate Employee Account</h2>
+      <p class="action-desc">Use this when an employee returns. The account is re-enabled on Active Directory with its previous group memberships intact.</p>
+      <form id="reactivate-form">
+        <div class="field">
+          <label for="reactivate_username">Username</label>
+          <input type="text" id="reactivate_username" name="username" required autocomplete="off" placeholder="e.g. jahmad">
+        </div>
+        <div class="field">
+          <label for="reactivate_reason">Reason (optional)</label>
+          <input type="text" id="reactivate_reason" name="reason" autocomplete="off" placeholder="e.g. rejoined the company">
+        </div>
+        <button type="submit" id="reactivate-submit-btn">Reactivate Account</button>
+        <p class="hint">This can take 10–30 seconds while the agent picks up and executes the request.</p>
+      </form>
+    </div>
+
+    <!-- Log (shared) -->
+    <div class="panel" id="log-panel">
+      <h2>Execution Log</h2>
+      <div id="status-badge-wrap"></div>
+      <div class="log" id="log">
+        <div class="empty">No request sent yet.</div>
+      </div>
+    </div>
+
+    <!-- Audit log -->
+    <div class="panel hidden full-width" id="audit-panel">
+      <h2>Full Audit Log</h2>
+      <p class="action-desc">All operations (create, disable, reactivate), stored permanently — not lost even if the server restarts.</p>
+      <div class="audit-toolbar">
+        <label for="audit-filter" style="margin:0;">Filter by status:</label>
+        <select id="audit-filter">
+          <option value="">All</option>
+          <option value="pending">Pending</option>
+          <option value="done">Done</option>
+          <option value="failed">Failed</option>
+        </select>
+        <button type="button" class="btn-secondary btn-refresh" id="audit-refresh-btn">Refresh</button>
+        <span style="flex:1;"></span>
+        <button type="button" class="btn-secondary btn-refresh" id="export-csv-btn">Export CSV</button>
+        <button type="button" class="btn-secondary btn-refresh" id="export-json-btn">Export JSON</button>
+      </div>
+      <div class="audit-table-wrap">
+        <table class="audit">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Type</th>
+              <th>Username</th>
+              <th>Department / Reason</th>
+              <th>Status</th>
+              <th>Time</th>
+              <th>Error Note</th>
+            </tr>
+          </thead>
+          <tbody id="audit-tbody">
+            <tr><td colspan="7">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal-overlay hidden" id="modal-overlay">
+  <div class="modal-box">
+    <h3 id="modal-title">Confirm Disable</h3>
+    <p id="modal-message">Are you sure? This will disable the account for <strong id="modal-username"></strong>.</p>
+    <div class="modal-actions">
+      <button type="button" class="btn-cancel" id="modal-cancel-btn">Cancel</button>
+      <button type="button" class="btn-confirm" id="modal-confirm-btn">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Backend address. Same-origin by default (works both locally and once deployed,
+  // since the backend serves this page itself). Hardcode a different URL here only
+  // if you're opening this file separately from where the backend runs.
+  const API_BASE = window.location.origin;
+
+  // ---------------------------------------------------------------
+  // Authentication
+  // ---------------------------------------------------------------
+  const loginScreen = document.getElementById('login-screen');
+  const appScreen = document.getElementById('app-screen');
+  const loginForm = document.getElementById('login-form');
+  const loginError = document.getElementById('login-error');
+  const loginSubmitBtn = document.getElementById('login-submit-btn');
+  const whoamiLabel = document.getElementById('whoami-label');
+  const logoutBtn = document.getElementById('logout-btn');
+
+  let authToken = localStorage.getItem('auth_token');
+
+  function authHeaders(){
+    return { 'Authorization': `Bearer ${authToken}` };
+  }
+
+  function showApp(username){
+    loginScreen.classList.add('hidden');
+    appScreen.classList.remove('hidden');
+    whoamiLabel.textContent = username ? `Signed in as ${username}` : '';
+  }
+
+  function showLogin(message){
+    authToken = null;
+    localStorage.removeItem('auth_token');
+    appScreen.classList.add('hidden');
+    loginScreen.classList.remove('hidden');
+    if(message){
+      loginError.textContent = message;
+      loginError.classList.remove('hidden');
+    } else {
+      loginError.classList.add('hidden');
+    }
+  }
+
+  // Redirects back to the login screen when a request comes back unauthorized
+  // (missing/expired/invalid token). Returns true if it handled a 401.
+  function handleAuthError(res){
+    if(res.status === 401){
+      showLogin('Your session has expired. Please log in again.');
+      return true;
+    }
+    return false;
+  }
+
+  async function checkDemoMode(){
+    try{
+      const res = await fetch(`${API_BASE}/api/health`);
+      const data = await res.json();
+      if(data.demo_mode){
+        const hint = document.getElementById('demo-hint');
+        hint.textContent = 'Public demo — log in with demo / demo1234. This simulates Active Directory; no real changes are made anywhere.';
+        hint.classList.remove('hidden');
+      }
+    } catch(err){
+      // Silently ignore — the login form still works without this hint
+    }
+  }
+  checkDemoMode();
+
+  async function checkExistingSession(){
+    if(!authToken){
+      showLogin();
+      return;
+    }
+    try{
+      const res = await fetch(`${API_BASE}/api/auth/me`, { headers: authHeaders() });
+      if(!res.ok){
+        showLogin();
+        return;
+      }
+      const data = await res.json();
+      showApp(data.username);
+    } catch(err){
+      showLogin('Could not reach the server. Make sure the backend is running.');
+    }
+  }
+
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    loginError.classList.add('hidden');
+    loginSubmitBtn.disabled = true;
+
+    const username = document.getElementById('login-username').value.trim();
+    const password = document.getElementById('login-password').value;
+
+    try{
+      const res = await fetch(`${API_BASE}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+
+      if(!res.ok){
+        const err = await res.json().catch(() => ({}));
+        loginError.textContent = err.detail || 'Login failed.';
+        loginError.classList.remove('hidden');
+        loginSubmitBtn.disabled = false;
+        return;
+      }
+
+      const data = await res.json();
+      authToken = data.access_token;
+      localStorage.setItem('auth_token', authToken);
+      loginForm.reset();
+      showApp(data.username);
+
+    } catch(err){
+      loginError.textContent = 'Could not reach the server. Make sure the backend is running.';
+      loginError.classList.remove('hidden');
+    } finally {
+      loginSubmitBtn.disabled = false;
+    }
+  });
+
+  logoutBtn.addEventListener('click', async () => {
+    try{
+      await fetch(`${API_BASE}/api/auth/logout`, { method: 'POST', headers: authHeaders() });
+    } catch(err){
+      // Logging out client-side still works even if the server call fails
+    }
+    showLogin();
+  });
+
+  checkExistingSession();
+
+  const form = document.getElementById('onboard-form');
+  const submitBtn = document.getElementById('submit-btn');
+  const offboardForm = document.getElementById('offboard-form');
+  const offboardSubmitBtn = document.getElementById('offboard-submit-btn');
+  const reactivateForm = document.getElementById('reactivate-form');
+  const reactivateSubmitBtn = document.getElementById('reactivate-submit-btn');
+  const logEl = document.getElementById('log');
+  const badgeWrap = document.getElementById('status-badge-wrap');
+  const employeeRowsEl = document.getElementById('employee-rows');
+  const addEmployeeBtn = document.getElementById('add-employee-btn');
+  const onboardResultsWrap = document.getElementById('onboard-results-wrap');
+  const onboardResultsTbody = document.getElementById('onboard-results-tbody');
+  let pollTimer = null;
+  let rowCounter = 0;
+
+  // ---- Tab switching ----
+  const tabOnboardBtn = document.getElementById('tab-onboard-btn');
+  const tabOffboardBtn = document.getElementById('tab-offboard-btn');
+  const tabReactivateBtn = document.getElementById('tab-reactivate-btn');
+  const tabAuditBtn = document.getElementById('tab-audit-btn');
+  const onboardPanel = document.getElementById('onboard-panel');
+  const offboardPanel = document.getElementById('offboard-panel');
+  const reactivatePanel = document.getElementById('reactivate-panel');
+  const auditPanel = document.getElementById('audit-panel');
+  const logPanel = document.getElementById('log-panel');
+
+  const allTabBtns = [tabOnboardBtn, tabOffboardBtn, tabReactivateBtn, tabAuditBtn];
+  const allActionPanels = [onboardPanel, offboardPanel, reactivatePanel, auditPanel];
+
+  function activateTab(activeBtn, visiblePanels){
+    allTabBtns.forEach(b => b.classList.remove('active'));
+    activeBtn.classList.add('active');
+    const hiddenPanels = allActionPanels.filter(p => !visiblePanels.includes(p));
+    visiblePanels.forEach(p => p.classList.remove('hidden'));
+    hiddenPanels.forEach(p => p.classList.add('hidden'));
+  }
+
+  tabOnboardBtn.addEventListener('click', () => {
+    activateTab(tabOnboardBtn, [onboardPanel, logPanel]);
+  });
+
+  tabOffboardBtn.addEventListener('click', () => {
+    activateTab(tabOffboardBtn, [offboardPanel, logPanel]);
+  });
+
+  tabReactivateBtn.addEventListener('click', () => {
+    activateTab(tabReactivateBtn, [reactivatePanel, logPanel]);
+  });
+
+  tabAuditBtn.addEventListener('click', () => {
+    activateTab(tabAuditBtn, [auditPanel]);
+    loadAuditLog();
+  });
+
+  // ---- Bulk employee rows ----
+  function addEmployeeRow(){
+    rowCounter++;
+    const row = document.createElement('div');
+    row.className = 'employee-row';
+    row.dataset.rowId = rowCounter;
+    row.innerHTML = `
+      <div class="field">
+        <label>First Name</label>
+        <input type="text" class="emp-first-name" required autocomplete="off">
+      </div>
+      <div class="field">
+        <label>Last Name</label>
+        <input type="text" class="emp-last-name" required autocomplete="off">
+      </div>
+      <button type="button" class="btn-remove-row" title="Remove this employee">×</button>
+    `;
+    row.querySelector('.btn-remove-row').addEventListener('click', () => {
+      if(employeeRowsEl.children.length > 1){
+        row.remove();
+      }
+    });
+    employeeRowsEl.appendChild(row);
+  }
+
+  addEmployeeBtn.addEventListener('click', addEmployeeRow);
+  addEmployeeRow();   // start with one row
+
+  // ---- Username suggestion: first letter of first name + last name ----
+  function suggestUsername(first, last){
+    const clean = (s) => s.trim().toLowerCase().replace(/[^a-z]/g, '');
+    const f = clean(first);
+    const l = clean(last);
+    if(!f || !l) return '';
+    return f.charAt(0) + l;
+  }
+
+  // ---- Generate a temporary password that meets AD's default complexity rules ----
+  function generatePassword(){
+    const upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+    const lower = 'abcdefghijkmnpqrstuvwxyz';
+    const digits = '23456789';
+    const symbols = '!@#$%';
+    const all = upper + lower + digits + symbols;
+
+    const pick = (chars) => chars.charAt(Math.floor(Math.random() * chars.length));
+    let pwd = [pick(upper), pick(lower), pick(digits), pick(symbols)];
+    for(let i = 0; i < 6; i++) pwd.push(pick(all));
+    pwd = pwd.sort(() => Math.random() - 0.5);
+    return pwd.join('');
+  }
+
+  function timeNow(){
+    return new Date().toLocaleTimeString('en-GB', { hour12:false });
+  }
+
+  function addLog(message, kind){
+    if (logEl.querySelector('.empty')) logEl.innerHTML = '';
+    const line = document.createElement('div');
+    line.className = 'log-line';
+    const cls = kind === 'ok' ? 'log-ok' : (kind === 'err' ? 'log-err' : '');
+    line.innerHTML = `<span class="log-time">${timeNow()}</span><span class="${cls}">${message}</span>`;
+    logEl.appendChild(line);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function setBadge(text, isError){
+    badgeWrap.innerHTML = `<span class="status-badge ${isError ? 'err' : ''}">${text}</span>`;
+  }
+
+  async function pollStatus(id, btn){
+    try{
+      const res = await fetch(`${API_BASE}/api/status/${id}`, { headers: authHeaders() });
+      if(handleAuthError(res)) return;
+      if(!res.ok) throw new Error('status_failed');
+      const data = await res.json();
+
+      const doneMessages = {
+        offboard: `Account disabled: ${data.username || ''}`,
+        reactivate: `Account reactivated: ${data.username || ''}`,
+        onboard: `Account created: ${data.username || ''}`
+      };
+
+      if(data.status === 'pending'){
+        setBadge('Waiting for agent...', false);
+        pollTimer = setTimeout(() => pollStatus(id, btn), 3000);
+      } else if(data.status === 'done'){
+        setBadge('Completed', false);
+        addLog(doneMessages[data.action] || doneMessages.onboard, 'ok');
+        btn.disabled = false;
+      } else if(data.status === 'failed'){
+        setBadge('Request failed', true);
+        addLog(`Execution failed: ${data.error || 'unknown reason'}`, 'err');
+        btn.disabled = false;
+      } else {
+        pollTimer = setTimeout(() => pollStatus(id, btn), 3000);
+      }
+    } catch(err){
+      setBadge('Could not reach server', true);
+      addLog('Could not reach the server while checking request status. Make sure the backend is running.', 'err');
+      btn.disabled = false;
+    }
+  }
+
+  // Polls the status of one row in the bulk results table and updates just that cell
+  async function pollBulkRowStatus(id, statusCell){
+    try{
+      const res = await fetch(`${API_BASE}/api/status/${id}`, { headers: authHeaders() });
+      if(handleAuthError(res)) return;
+      if(!res.ok) throw new Error('status_failed');
+      const data = await res.json();
+
+      if(data.status === 'pending'){
+        setTimeout(() => pollBulkRowStatus(id, statusCell), 3000);
+      } else if(data.status === 'done'){
+        statusCell.innerHTML = '<span class="pill done">Done</span>';
+        addLog(`Account created: ${data.username || ''}`, 'ok');
+      } else if(data.status === 'failed'){
+        statusCell.innerHTML = '<span class="pill failed">Failed</span>';
+        addLog(`Execution failed: ${data.error || 'unknown reason'}`, 'err');
+      } else {
+        setTimeout(() => pollBulkRowStatus(id, statusCell), 3000);
+      }
+    } catch(err){
+      statusCell.innerHTML = '<span class="pill failed">Error</span>';
+    }
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if(pollTimer) clearTimeout(pollTimer);
+
+    const department = document.getElementById('department').value;
+    const rows = Array.from(employeeRowsEl.querySelectorAll('.employee-row'));
+    const usedUsernames = new Set();
+    const employees = [];
+
+    for(const row of rows){
+      const firstName = row.querySelector('.emp-first-name').value.trim();
+      const lastName = row.querySelector('.emp-last-name').value.trim();
+      if(!firstName || !lastName) continue;
+
+      let username = suggestUsername(firstName, lastName);
+      let suffix = 2;
+      while(usedUsernames.has(username)){
+        username = suggestUsername(firstName, lastName) + suffix;
+        suffix++;
+      }
+      usedUsernames.add(username);
+
+      employees.push({
+        first_name: firstName,
+        last_name: lastName,
+        department: department,
+        username: username,
+        password: generatePassword()
+      });
+    }
+
+    if(employees.length === 0){
+      addLog('Add at least one employee with a first and last name before submitting.', 'err');
+      return;
+    }
+
+    submitBtn.disabled = true;
+    setBadge('Sending...', false);
+    const names = employees.map(e => `${e.first_name} ${e.last_name}`).join(', ');
+    addLog(employees.length === 1
+      ? `Sending create request: ${names} — ${department}`
+      : `Sending create request for ${employees.length} employees: ${names} — ${department}`);
+
+    try{
+      const res = await fetch(`${API_BASE}/api/request/bulk`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify({ employees })
+      });
+      if(handleAuthError(res)) return;
+      if(!res.ok) throw new Error('request_failed');
+      const data = await res.json();
+
+      addLog(`${data.count} request(s) received (ids: ${data.requests.map(r => r.id).join(', ')})`);
+
+      // Build the credentials results table
+      onboardResultsTbody.innerHTML = '';
+      data.requests.forEach((r, i) => {
+        const emp = employees[i];
+        const tr = document.createElement('tr');
+        const statusCellId = `bulk-status-${r.id}`;
+        tr.innerHTML = `
+          <td>${emp.first_name} ${emp.last_name}</td>
+          <td class="mono">${emp.username}</td>
+          <td class="mono">${emp.password}</td>
+          <td id="${statusCellId}"><span class="pill pending">Pending</span></td>
+        `;
+        onboardResultsTbody.appendChild(tr);
+        if(r.id){
+          pollBulkRowStatus(r.id, tr.querySelector(`#${statusCellId}`));
+        }
+      });
+      onboardResultsWrap.classList.remove('hidden');
+      setBadge(`${data.count} request(s) sent`, false);
+
+      // Reset the form back to a single empty row for the next batch
+      employeeRowsEl.innerHTML = '';
+      addEmployeeRow();
+      document.getElementById('department').value = '';
+
+    } catch(err){
+      setBadge('Send failed', true);
+      addLog('Could not send the request. Make sure the backend is running at the configured address.', 'err');
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+
+  // ---- Confirmation modal (shared by Offboard and Reactivate) ----
+  const modalOverlay = document.getElementById('modal-overlay');
+  const modalTitle = document.getElementById('modal-title');
+  const modalMessage = document.getElementById('modal-message');
+  const modalUsername = document.getElementById('modal-username');
+  const modalCancelBtn = document.getElementById('modal-cancel-btn');
+  const modalConfirmBtn = document.getElementById('modal-confirm-btn');
+  let pendingAction = null;   // { type: 'offboard' | 'reactivate', payload, btn }
+
+  function openConfirmModal(type, payload, btn){
+    pendingAction = { type, payload, btn };
+    const isReactivate = type === 'reactivate';
+    modalTitle.textContent = isReactivate ? 'Confirm Reactivate' : 'Confirm Disable';
+    modalMessage.innerHTML = isReactivate
+      ? `Are you sure? This will re-enable the account for <strong id="modal-username"></strong>.`
+      : `Are you sure? This will disable the account for <strong id="modal-username"></strong>.`;
+    document.getElementById('modal-username').textContent = payload.username;
+    modalOverlay.classList.remove('hidden');
+  }
+
+  offboardForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    openConfirmModal('offboard', {
+      username: document.getElementById('offboard_username').value.trim(),
+      reason: document.getElementById('offboard_reason').value.trim() || null
+    }, offboardSubmitBtn);
+  });
+
+  reactivateForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    openConfirmModal('reactivate', {
+      username: document.getElementById('reactivate_username').value.trim(),
+      reason: document.getElementById('reactivate_reason').value.trim() || null
+    }, reactivateSubmitBtn);
+  });
+
+  modalCancelBtn.addEventListener('click', () => {
+    pendingAction = null;
+    modalOverlay.classList.add('hidden');
+  });
+
+  modalOverlay.addEventListener('click', (e) => {
+    if(e.target === modalOverlay){
+      pendingAction = null;
+      modalOverlay.classList.add('hidden');
+    }
+  });
+
+  modalConfirmBtn.addEventListener('click', async () => {
+    modalOverlay.classList.add('hidden');
+    if(!pendingAction) return;
+    const { type, payload, btn } = pendingAction;
+    pendingAction = null;
+    if(type === 'offboard'){
+      await submitOffboard(payload, btn);
+    } else if(type === 'reactivate'){
+      await submitReactivate(payload, btn);
+    }
+  });
+
+  async function submitOffboard(payload, btn){
+    if(pollTimer) clearTimeout(pollTimer);
+    btn.disabled = true;
+    setBadge('Sending...', false);
+    addLog(`Sending disable request: ${payload.username}`);
+
+    try{
+      const res = await fetch(`${API_BASE}/api/offboard`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify(payload)
+      });
+      if(handleAuthError(res)) return;
+      if(!res.ok) throw new Error('offboard_failed');
+      const data = await res.json();
+
+      addLog(`Disable request received (id: ${data.id})`);
+      offboardForm.reset();
+      pollStatus(data.id, btn);
+
+    } catch(err){
+      setBadge('Send failed', true);
+      addLog('Could not send the disable request. Make sure the backend is running at the configured address.', 'err');
+      btn.disabled = false;
+    }
+  }
+
+  async function submitReactivate(payload, btn){
+    if(pollTimer) clearTimeout(pollTimer);
+    btn.disabled = true;
+    setBadge('Sending...', false);
+    addLog(`Sending reactivate request: ${payload.username}`);
+
+    try{
+      const res = await fetch(`${API_BASE}/api/reactivate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify(payload)
+      });
+      if(handleAuthError(res)) return;
+      if(!res.ok) throw new Error('reactivate_failed');
+      const data = await res.json();
+
+      addLog(`Reactivate request received (id: ${data.id})`);
+      reactivateForm.reset();
+      pollStatus(data.id, btn);
+
+    } catch(err){
+      setBadge('Send failed', true);
+      addLog('Could not send the reactivate request. Make sure the backend is running at the configured address.', 'err');
+      btn.disabled = false;
+    }
+  }
+
+  // ---- Audit log ----
+  const auditFilter = document.getElementById('audit-filter');
+  const auditRefreshBtn = document.getElementById('audit-refresh-btn');
+  const auditTbody = document.getElementById('audit-tbody');
+
+  const actionLabel = (a) => a === 'offboard' ? 'Disable Account' : (a === 'reactivate' ? 'Reactivate Account' : 'Create Account');
+  const statusLabel = (s) => s === 'pending' ? 'Pending' : (s === 'done' ? 'Done' : (s === 'failed' ? 'Failed' : s));
+
+  function escapeHtml(str){
+    if(str === null || str === undefined) return '';
+    return String(str).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  async function loadAuditLog(){
+    auditTbody.innerHTML = '<tr><td colspan="7">Loading...</td></tr>';
+    const filterVal = auditFilter.value;
+    const url = `${API_BASE}/api/audit` + (filterVal ? `?status=${filterVal}` : '');
+
+    try{
+      const res = await fetch(url, { headers: authHeaders() });
+      if(handleAuthError(res)) return;
+      if(!res.ok) throw new Error('audit_failed');
+      const data = await res.json();
+
+      if(!data.requests || data.requests.length === 0){
+        auditTbody.innerHTML = '<tr><td colspan="7">No matching records.</td></tr>';
+        return;
+      }
+
+      auditTbody.innerHTML = data.requests.map(r => `
+        <tr>
+          <td>${r.id}</td>
+          <td>${actionLabel(r.action)}</td>
+          <td class="mono">${escapeHtml(r.username) || '—'}</td>
+          <td>${escapeHtml(r.action === 'onboard' ? r.department : r.reason) || '—'}</td>
+          <td><span class="pill ${r.status}">${statusLabel(r.status)}</span></td>
+          <td class="mono">${escapeHtml(r.created_at ? r.created_at.replace('T', ' ').slice(0, 19) : '')}</td>
+          <td>${escapeHtml(r.error) || '—'}</td>
+        </tr>
+      `).join('');
+
+    } catch(err){
+      auditTbody.innerHTML = '<tr><td colspan="7">Could not load the log. Make sure the backend is running.</td></tr>';
+    }
+  }
+
+  auditFilter.addEventListener('change', loadAuditLog);
+  auditRefreshBtn.addEventListener('click', loadAuditLog);
+
+  // ---- Export buttons ----
+  function exportAudit(format){
+    const filterVal = auditFilter.value;
+    let url = `${API_BASE}/api/audit/export?format=${format}&token=${encodeURIComponent(authToken)}`;
+    if(filterVal) url += `&status=${filterVal}`;
+    window.location.href = url;
+  }
+
+  document.getElementById('export-csv-btn').addEventListener('click', () => exportAudit('csv'));
+  document.getElementById('export-json-btn').addEventListener('click', () => exportAudit('json'));
+</script>
+
+</body>
+</html>

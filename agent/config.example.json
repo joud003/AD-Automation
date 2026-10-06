@@ -1,0 +1,10 @@
+{
+  "backend_url": "http://YOUR_BACKEND_HOST:8000",
+  "api_key": "PASTE_THE_KEY_FROM_/api/agents/register",
+  "domain": "company.local",
+  "departments": {
+    "IT":      { "ou": "OU=IT,DC=company,DC=local",      "group": "GRP_IT_Users" },
+    "HR":      { "ou": "OU=HR,DC=company,DC=local",      "group": "GRP_HR_Users" },
+    "Finance": { "ou": "OU=Finance,DC=company,DC=local", "group": "GRP_Finance_Users" }
+  }
+}
