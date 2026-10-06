@@ -8,7 +8,11 @@ hands-on Active Directory administration: every new hire or leaver means a sysad
 to manually create/disable an AD account, assign the right OU and security groups, and
 remember to do it consistently. This tool removes that manual step entirely.
 
-**[▶ Watch the demo video](docs/demo.mp4)** (2 min)
+**[▶ Watch the d
+
+https://github.com/user-attachments/assets/56d73870-04f1-4e80-90dc-85c4c36f93c4
+
+emo video](docs/demo.mp4)** (2 min)
 
 ![Bulk account creation](docs/screenshots/02-bulk-create-accounts.png)
 
